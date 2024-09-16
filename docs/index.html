@@ -15,6 +15,17 @@
             .muted {
                 color: gray
             }
+
+            dialog {
+                padding: 1em 2em;
+            }
+            dialog::backdrop {
+                background-color: rgba(0,0,0,.3);
+            }
+
+            math {
+                font-size: 1.2;
+            }
         </style>
     </head>
     <body>
@@ -31,12 +42,42 @@
                         <th>Date</th>
                         <th>Price per 1 VT in ETH</th>
                         <th>Difference</th>
-                        <th>Expected APR</th>
+                        <th>
+                            Expected APR <button type="button" popovertarget="apr-popover">?</button>
+                        </th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
+
+        <dialog id="apr-popover" popover>
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+                <mrow>
+                    <mi>APR</mi>
+                    <mo>=</mo>
+                    <mfrac>
+                        <mrow>
+                            <mi>Price</mi>
+                            <mo>&times;</mo>
+                            <mn>365</mn>
+                            <mtext>&#xA0;days</mtext>
+                        </mrow>
+                        <mrow>
+                            <mn>32</mn>
+                            <mtext>&#xA0;ETH</mtext>
+                        </mrow>
+                    </mfrac>
+                </mrow>
+            </math>
+
+            <ul>
+              <li>If your actual APR equals this calculated APR, you're at break-even.</li>
+              <li>If your actual APR is lower, you've incurred a loss.</li>
+              <li>If your actual APR is higher, you've made a profit.</li>
+            </ul>
+            <p>Note: This calculation assumes a full year of staking and doesn't account for compound interest and node operation fee.</p>
+        </dialog>
 
     <script type="module">
         let entries = await (await fetch('./events.json')).json()
