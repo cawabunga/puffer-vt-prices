@@ -46,7 +46,7 @@
 
         for (const {timestamp, event} of entries) {
             const date = new Date(timestamp * 1000)
-            const relativeDate = rtf1.format(Math.floor((date - now) / (24 * 60 * 60 * 1000)), 'days')
+            const relativeDate = rtf1.format(Math.ceil((date - now) / (24 * 60 * 60 * 1000)), 'days')
             const diff = event.newPrice - event.oldPrice
             const diffPercentage = (diff / event.oldPrice) * 100
             const priceInEth = formatBn(BigInt(event.newPrice), 18)
