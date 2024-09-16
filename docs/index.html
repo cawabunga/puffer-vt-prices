@@ -31,6 +31,7 @@
                         <th>Date</th>
                         <th>Price per 1 VT in ETH</th>
                         <th>Difference</th>
+                        <th>Expected APR</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -46,14 +47,18 @@
 
         const rtf1 = new Intl.RelativeTimeFormat(navigator.language, { style: 'short' });
         const now = Date.now()
-
+        const BASIS_POINT = 10_000n
+        const ETH_DECIMAL = 18
+        const ETH = 10n ** BigInt(ETH_DECIMAL)
+        const DAYS_IN_YEAR = 365n
 
         for (const {timestamp, event} of entries) {
             const date = new Date(timestamp * 1000)
             const relativeDate = rtf1.format(Math.ceil((date - now) / (24 * 60 * 60 * 1000)), 'days')
             const diff = event.newPrice - event.oldPrice
             const diffPercentage = (diff / event.oldPrice) * 100
-            const priceInEth = formatBn(BigInt(event.newPrice), 18)
+            const priceInETH = formatBn(BigInt(event.newPrice), ETH_DECIMAL)
+            const expectedAPR = BigInt(event.newPrice) * DAYS_IN_YEAR / 32n
 
             const tr = document.createElement("tr")
 
@@ -62,17 +67,18 @@
                 <br />
                 <small class="muted">${date.toLocaleDateString()}</small>
             </td>`
-            tr.innerHTML += `<td>${priceInEth}</td>`
+            tr.innerHTML += `<td>${priceInETH}</td>`
             tr.innerHTML += `<td class='${diff > 0 ? "red" : "green"}'>
                 ${diff > 0 ? "+" : ""}${diffPercentage.toFixed(4)}%
             </td>`
+            tr.innerHTML += `<td>${formatBn(expectedAPR, ETH_DECIMAL - 2, 2)}%</td>`
 
             fragment.appendChild(tr)
         }
 
         document.querySelector('tbody').appendChild(fragment)
 
-        function formatBn(n, decimal) {
+        function formatBn(n, decimal, fractionLen = null) {
             const exp = 10n ** BigInt(decimal);
             const sign = n < 0n ? -1n : 1n;
             n = sign * n;
@@ -81,6 +87,9 @@
             let fraction = String(n % exp).padStart(decimal, '0');
             // Remove trailing zeros
             fraction = fraction.replace(/0+$/, '');
+            if (fractionLen != null) {
+                fraction = fraction.slice(0, Math.min(fractionLen, fraction.length))
+            }
             return `${signSymbol}${int}.${fraction}`;
         }
 
