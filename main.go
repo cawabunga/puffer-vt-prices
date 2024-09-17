@@ -122,7 +122,7 @@ func main() {
 		entries = append(entries, entry)
 	}
 
-	data, err := json.Marshal(entries)
+	data, err := json.MarshalIndent(entries, "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
