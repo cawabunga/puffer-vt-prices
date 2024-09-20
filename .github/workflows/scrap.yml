@@ -1,0 +1,38 @@
+name: Scrap Prices
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */3 * * *" # every 3 hour
+
+jobs:
+  scrap:
+    timeout-minutes: 5
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        go-version: [1.23.1]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '${{ matrix.go-version }}'
+
+      - run: go run .
+
+      - uses: EndBug/add-and-commit@v9
+        with:
+          add: 'docs'
+          message: 'Update files'
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
