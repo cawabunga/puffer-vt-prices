@@ -39,6 +39,9 @@
                 <br />
                 More about VT pricing on <a href="https://docs.puffer.fi/protocol/validator-tickets/#pricing-validator-tickets" target="_blank" rel="noopener noreferrer">docs.puffer.fi</a>.
             </p>
+
+            <div id="chart" style="width: 100%;"></div>
+
             <table style="border-spacing: 1em;">
                 <thead>
                     <tr>
@@ -86,44 +89,79 @@
             </div>
         </dialog>
 
+
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <script type="module">
-        let entries = await (await fetch('./events.json')).json()
-
-        const fragment = document.createDocumentFragment()
-
-        entries.sort((a, b) => b.timestamp - a.timestamp)
-
-        const rtf1 = new Intl.RelativeTimeFormat(navigator.language, { style: 'short' });
         const BASIS_POINT = 10_000n
         const ETH_DECIMAL = 18
         const ETH = 10n ** BigInt(ETH_DECIMAL)
         const DAYS_IN_YEAR = 365n
 
-        for (const {timestamp, event} of entries) {
-            const date = new Date(timestamp * 1000)
-            const relativeDate = getRelativeDate(rtf1, date)
+        let entries = await (await fetch('./events.json')).json()
+
+        const data = entries.map(({timestamp, event}) => {
             const diff = event.newPrice - event.oldPrice
-            const diffPercentage = (diff / event.oldPrice) * 100
-            const priceInETH = formatBn(BigInt(event.newPrice), ETH_DECIMAL)
-            const expectedAPR = BigInt(event.newPrice) * DAYS_IN_YEAR / 32n
+            const diffBasisPoint = Math.floor((diff / event.oldPrice) * Number(BASIS_POINT))
 
-            const tr = document.createElement("tr")
+            const priceFormatted = formatBn(BigInt(event.newPrice), ETH_DECIMAL)
+            const targetAPRBasisPoint = Number((BigInt(event.newPrice) * DAYS_IN_YEAR / 32n) * BASIS_POINT / ETH)
 
-            tr.innerHTML += `<td style="text-align: center">
-                ${relativeDate}
-                <br />
-                <small class="muted">${date.toLocaleDateString()}</small>
-            </td>`
-            tr.innerHTML += `<td>${priceInETH}</td>`
-            tr.innerHTML += `<td class='${diff > 0 ? "red" : "green"}' style="text-align: center">
-                ${diff > 0 ? "+" : ""}${diffPercentage.toFixed(4)}%
-            </td>`
-            tr.innerHTML += `<td style="text-align: center">${formatBn(expectedAPR, ETH_DECIMAL - 2, 2)}%</td>`
+            return {
+                timestamp,
+                price: event.newPrice,
+                priceFormatted,
+                diffBasisPoint,
+                targetAPRBasisPoint,
+            }
+        })
 
-            fragment.appendChild(tr)
+        setupChart(data)
+        document.querySelector('tbody').appendChild(renderTable(data))
+
+        function setupChart(data) {
+            const chart = LightweightCharts.createChart(document.querySelector('#chart'), { height: 500 });
+            const lineSeries = chart.addLineSeries({
+                priceFormat: {
+                    minMove: 0.0001,
+                },
+            })
+
+            const priceSeries = chart.addLineSeries({
+                title: 'Price per 1 VT in ETH',
+            })
+
+            priceSeries.setData(data.map((line) => ({
+                time: line.timestamp,
+                value: Number(line.priceFormatted),
+            })))
         }
 
-        document.querySelector('tbody').appendChild(fragment)
+        function renderTable(processedData) {
+            const rtf1 = new Intl.RelativeTimeFormat(navigator.language, { style: 'short' });
+            const fragment = document.createDocumentFragment()
+
+            for (const line of processedData.sort((a, b) => b.timestamp - a.timestamp)) {
+                const date = new Date(line.timestamp * 1000)
+                const relativeDate = getRelativeDate(rtf1, date)
+
+                const tr = document.createElement("tr")
+
+                tr.innerHTML += `<td style="text-align: center">
+                    ${relativeDate}
+                    <br />
+                    <small class="muted">${date.toLocaleDateString()}</small>
+                </td>`
+                tr.innerHTML += `<td>${line.priceFormatted}</td>`
+                tr.innerHTML += `<td class='${line.diffBasisPoint > 0 ? "red" : "green"}' style="text-align: center">
+                    ${line.diffBasisPoint > 0 ? "+" : ""}${basisPointToPercentage(line.diffBasisPoint)}%
+                </td>`
+                tr.innerHTML += `<td style="text-align: center">${basisPointToPercentage(line.targetAPRBasisPoint)}%</td>`
+
+                fragment.appendChild(tr)
+            }
+
+            return fragment
+        }
 
         function formatBn(n, decimal, fractionLen = null) {
             const exp = 10n ** BigInt(decimal);
@@ -157,6 +195,10 @@
             } else {
                 return rtf1.format(-secondsAgo, 'seconds')
             }
+        }
+
+        function basisPointToPercentage(bp) {
+            return Number(bp) / 100
         }
 
     </script>
