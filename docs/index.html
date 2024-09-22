@@ -87,7 +87,6 @@
         entries.sort((a, b) => b.timestamp - a.timestamp)
 
         const rtf1 = new Intl.RelativeTimeFormat(navigator.language, { style: 'short' });
-        const now = Date.now()
         const BASIS_POINT = 10_000n
         const ETH_DECIMAL = 18
         const ETH = 10n ** BigInt(ETH_DECIMAL)
@@ -95,7 +94,7 @@
 
         for (const {timestamp, event} of entries) {
             const date = new Date(timestamp * 1000)
-            const relativeDate = rtf1.format(Math.ceil((date - now) / (24 * 60 * 60 * 1000)), 'days')
+            const relativeDate = getRelativeDate(rtf1, date)
             const diff = event.newPrice - event.oldPrice
             const diffPercentage = (diff / event.oldPrice) * 100
             const priceInETH = formatBn(BigInt(event.newPrice), ETH_DECIMAL)
@@ -132,6 +131,25 @@
                 fraction = fraction.slice(0, Math.min(fractionLen, fraction.length))
             }
             return `${signSymbol}${int}.${fraction}`;
+        }
+
+        function getRelativeDate(rtf1, date) {
+            const now = Date.now()
+            const timeDiff = now - date
+            const daysAgo = Math.floor(timeDiff / (24 * 60 * 60 * 1000))
+            const hoursAgo = Math.floor(timeDiff / (60 * 60 * 1000))
+            const minutesAgo = Math.floor(timeDiff / (60 * 1000))
+            const secondsAgo = Math.floor(timeDiff / (1000))
+
+            if (0 < daysAgo) {
+                return rtf1.format(-daysAgo, 'days')
+            } else if (0 < hoursAgo) {
+                return rtf1.format(-hoursAgo, 'hours')
+            } else if (0 < minutesAgo) {
+                return rtf1.format(-minutesAgo, 'minutes')
+            } else {
+                return rtf1.format(-secondsAgo, 'seconds')
+            }
         }
 
     </script>
