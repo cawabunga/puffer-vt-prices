@@ -29,12 +29,15 @@
         </style>
     </head>
     <body>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-        <img src="./Horizontal@2x.png" style="max-width: 200px;" />
-            <h1>Puffer Validator Ticket (VT) Price History</h1>
-            <p>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5em;">
+            <img src="./Horizontal@2x.png" style="max-width: 200px;" />
+            <h1  style="margin: 0">Puffer Validator Ticket (VT) Price History</h1>
+            <p style="margin: 0; text-align: center; line-height: 1.7;">
                 Prices are obtained from the <a href="https://etherscan.io/address/0x0BE2aE0edbeBb517541DF217EF0074FC9a9e994f" target="_blank" rel="noopener noreferrer">PufferOracleV2</a> smart-contract.
+                <br />
                 This ensures that all displayed prices are official and accurate.
+                <br />
+                More about VT pricing on <a href="https://docs.puffer.fi/protocol/validator-tickets/#pricing-validator-tickets" target="_blank" rel="noopener noreferrer">docs.puffer.fi</a>.
             </p>
             <table style="border-spacing: 1em;">
                 <thead>
@@ -43,7 +46,7 @@
                         <th>Price per 1 VT in ETH</th>
                         <th>Difference</th>
                         <th>
-                            Expected APR <button type="button" popovertarget="apr-popover">?</button>
+                            Target APR <button type="button" popovertarget="apr-popover">?</button>
                         </th>
                     </tr>
                 </thead>
@@ -54,7 +57,7 @@
         <dialog id="apr-popover" popover>
             <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
                 <mrow>
-                    <mi>APR</mi>
+                    <mi>Taget APR</mi>
                     <mo>=</mo>
                     <mfrac>
                         <mrow>
@@ -76,7 +79,7 @@
               <li>If your actual APR is lower, you've incurred a loss.</li>
               <li>If your actual APR is higher, you've made a profit.</li>
             </ul>
-            <p>Note: This calculation assumes a full year of staking and doesn't account for compound interest and node operation fee.</p>
+            <p>Note: This calculation assumes a full year of staking and doesn't account for compound interest and node operation fee.</p></p>
 
             <div style="display: flex; justify-content: center;">
                 <button type="button" popovertarget="apr-popover" popovertargetaction="hide">close</button>
@@ -106,16 +109,16 @@
 
             const tr = document.createElement("tr")
 
-            tr.innerHTML += `<td>
+            tr.innerHTML += `<td style="text-align: center">
                 ${relativeDate}
                 <br />
                 <small class="muted">${date.toLocaleDateString()}</small>
             </td>`
             tr.innerHTML += `<td>${priceInETH}</td>`
-            tr.innerHTML += `<td class='${diff > 0 ? "red" : "green"}'>
+            tr.innerHTML += `<td class='${diff > 0 ? "red" : "green"}' style="text-align: center">
                 ${diff > 0 ? "+" : ""}${diffPercentage.toFixed(4)}%
             </td>`
-            tr.innerHTML += `<td>${formatBn(expectedAPR, ETH_DECIMAL - 2, 2)}%</td>`
+            tr.innerHTML += `<td style="text-align: center">${formatBn(expectedAPR, ETH_DECIMAL - 2, 2)}%</td>`
 
             fragment.appendChild(tr)
         }
