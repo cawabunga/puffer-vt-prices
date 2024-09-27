@@ -2798,5 +2798,21 @@
       "oldPrice": 2808022500000000,
       "newPrice": 2814904500000000
     }
+  },
+  {
+    "timestamp": 1727426207,
+    "blockNumber": 20840807,
+    "event": {
+      "oldPrice": 2814904500000000,
+      "newPrice": 2812323750000000
+    }
+  },
+  {
+    "timestamp": 1727426519,
+    "blockNumber": 20840832,
+    "event": {
+      "oldPrice": 2812323750000000,
+      "newPrice": 2812129500000000
+    }
   }
 ]
